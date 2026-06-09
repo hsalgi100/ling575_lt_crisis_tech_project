@@ -7,13 +7,13 @@ SETUP (run once):
   pip install huggingface_hub
 
 DOWNLOAD MODEL (run once):
-  huggingface-cli login
-  huggingface-cli download bartowski/google_gemma-4-E4B-it-GGUF \
+  hf auth login
+  hf download bartowski/google_gemma-4-E4B-it-GGUF \
     --include "*Q4_K_M*" \
     --local-dir ./models
 
 RUN:
-  python gemma4_4b.py
+  python scripts/gemma4_4b.py
 """
 
 import os

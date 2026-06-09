@@ -1,0 +1,28 @@
+{
+  "total_docs": 499,
+  "languages": [
+    "am",
+    "en",
+    "eng",
+    "es",
+    "fa",
+    "hi",
+    "ja",
+    "km",
+    "ko",
+    "lo",
+    "om",
+    "pa",
+    "ru",
+    "so",
+    "th",
+    "tl",
+    "uk",
+    "vi",
+    "zh"
+  ],
+  "num_languages": 19,
+  "total_sentences_approx": 11005,
+  "total_tokens_approx": 168848,
+  "total_pairs": 18
+}
