@@ -1,5 +1,6 @@
 import sys, os
 from google.cloud import translate # translate_v2 as translate
+from eval_fns import *
 # from os import environ
 # from google.cloud import translate
 
@@ -12,7 +13,7 @@ PARENT = f"projects/{PROJECT_ID}/locations/global"
 # from STEP 4 in tutorial
 def print_supported_languages(display_language_code: str):
     client = translate.TranslationServiceClient()
-    
+
     response = client.get_supported_languages(
         parent=PARENT,
         display_language_code=display_language_code,
