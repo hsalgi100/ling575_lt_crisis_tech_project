@@ -1,7 +1,14 @@
 from nltk.translate.bleu_score import sentence_bleu
 
 def bleu(hypothesis_sent:str, human_reference:str):
-    """Computes the NLTK bleu score for BLEU-2, BLEU-3, and BLEU-4"""
+    """Computes the NLTK bleu score for BLEU-2, BLEU-3, and BLEU-4
+    Args:
+        - hypothesis_sent: the machine translated sentence
+        - human_reference: the gold reference / human translation
+    
+    Returns:
+    A dictionary with BLEU-2, BLEU-3, and BLEU-4
+    """
 
     hypo = hypothesis_sent.split(" ")
     ref = human_reference.split(" ")
@@ -21,5 +28,8 @@ def bleu(hypothesis_sent:str, human_reference:str):
         "bleu3": b3,
         "bleu4": b4
     }
+
+
+
 
 
