@@ -5,7 +5,7 @@ import evaluate
 # Things to load beforehand:
 _chrf = evaluate.load("chrf")
 _bleu = evaluate.load("bleu")
-
+_comet = evaluate.load("comet")
 
 # def nltk_bleu(MT_sent:str, human_reference:str):
 #     """Computes the NLTK bleu score for BLEU-2, BLEU-3, and BLEU-4
@@ -56,9 +56,9 @@ def bleu(MT_sent:str, human_reference:str):
     return {
         "bleu": bleu_scores["bleu"],
         "bleu1_precision": bleu_scores["precisions"][0],
-        "bleu2_precision": bleu_scores["bleu"][1], 
-        "bleu3_precision": bleu_scores["bleu"][2],
-        "bleu4_precision": bleu_scores["bleu"][3]
+        "bleu2_precision": bleu_scores["precisions"][1], 
+        "bleu3_precision": bleu_scores["precisions"][2],
+        "bleu4_precision": bleu_scores["precisions"][3]
     }
 
 def chrf(MT_sent:str, human_reference:str):
@@ -90,14 +90,20 @@ def chrf(MT_sent:str, human_reference:str):
         "chrf++": chrfplusplus_scores["score"]
     }
 
-def comet(MT_sent:str, human_reference:str):
-    """Computes Comet for a pair of sentences.
+def comet(MT_sent:str, human_reference:str, source_sentence:str):
+    """Computes Comet for a triple of sentences.
     
     Args:
         - MT_sent: the machine translated sentence
         - human_reference: the gold reference / human translation
+        - source_sentence: the sentence in the source language (before translation)
     
     Returns:
     A dictionary with COMET scores
     """
 
+    comet_score = _comet.compute(
+        predictions = [MT_sent],
+        reference = [human_reference],
+        sources = [source_sentence]
+    )
