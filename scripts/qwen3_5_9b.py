@@ -27,37 +27,29 @@ import sys
 import glob
 from llama_cpp import Llama
 
-# ── Configuration ─────────────────────────────────────────────────────────────
+# Configuration
 
-# Folder to look for .gguf files (relative to where you run this script)
+# Folder to look for .gguf files
 MODELS_DIR = "models"
 
-MODEL_PATH = None  # Leave None to auto-detect from MODELS_DIR
+MODEL_PATH = None 
 
 # Number of layers to offload to Metal GPU
-# -1 = offload everything (recommended for Apple Silicon)
+# -1 = offload everything
 N_GPU_LAYERS = -1
 
 # Context window size.
-# Qwen3.5-9B supports a native 262,144-token context, but that needs a LOT of
-# RAM. Start modest and raise it if you have headroom. Note that thinking mode
-# consumes context quickly, so don't set this too low.
 N_CTX = 8192
 
-# Max tokens to generate per response. Reasoning models can produce long
-# <think> traces, so give them more room than you would a non-reasoning model.
+# Max tokens to generate per response.
 MAX_NEW_TOKENS = 2048
 
 # Reasoning toggle.
-#   True  -> model thinks first (emits a <think>...</think> block), then answers.
+#   True  -> model thinks first 
 #   False -> thinking is suppressed; you get a direct answer.
 ENABLE_THINKING = True
 
 # When thinking is enabled, also print the reasoning trace?
-#   True  -> show the <think> content (dimmed), then the answer.
-#   False -> hide the reasoning, show only the final answer.
-# (Either way, only the final answer is kept in conversation history — Qwen
-#  recommends NOT feeding past thinking back into multi-turn context.)
 SHOW_THINKING = False
 
 # Sampling parameters.
