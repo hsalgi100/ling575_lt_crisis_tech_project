@@ -1,12 +1,12 @@
 "technology","metric","score"
-"Gemma4","bleu",23.9465740252208
+"Gemma4","bleu",0.239465740252208
 "Gemma4","chrf",49.1997813584005
 "Gemma4","chrf..",45.5161075705856
 "Gemma4","comet",0.856806356746441
 "Google Translate","bleu",0.441270989389267
 "Google Translate","chrf",49.6633772897421
 "Google Translate","chrf..",46.1489068758196
-"Qwen35","bleu",17.3508327784408
+"Qwen35","bleu",0.173508327784408
 "Qwen35","chrf",41.0684204944366
 "Qwen35","chrf..",37.7002538448155
 "Qwen35","comet",0.824262208536836
