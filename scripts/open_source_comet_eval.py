@@ -18,18 +18,7 @@ WHAT THIS DOES
   and appear under "translations", but they cannot be COMET-scored (COMET is
   reference-based), so they are omitted from that record's "evaluation".
 
-SETUP (run once):
-  pip install llama-cpp-python unbabel-comet
-
-JSONL format expected (one object per line):
-  {
-    "id": "kc-911_outage-000",
-    "scenario": "911_outage",
-    "source": {"eng": "English text"},
-    "translations": {"am": "...gold...", "ko": "...gold...", ...}   # optional
-  }
-
-MEMORY --> 16 GB Mac:
+MEMORY --> 16 GB Mac
 """
 
 import os
@@ -42,6 +31,10 @@ import argparse
 from collections import defaultdict
 from pathlib import Path
 from llama_cpp import Llama
+
+import torch
+# We score on CPU, so MPS detection is irrelevant here — switch it off for single-process loading.
+torch.backends.mps.is_available = lambda: False
 
 DEFAULT_GEMMA_PATH = "scripts/models/google_gemma-4-E4B-it-Q4_K_M.gguf"
 DEFAULT_QWEN_PATH  = "scripts/models/Qwen_qwen3.5-9B-Q4_K_M.gguf"
