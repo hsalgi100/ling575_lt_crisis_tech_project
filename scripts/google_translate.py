@@ -55,7 +55,11 @@ def translate_with_backoff(text:str, target_language_code:str, max_retries:int =
             time.sleep(sleep_time)
 
 # Main Inputs:
-main_args = ["","../../TranslationToolEvaluation/data/processed/kc","../machine_translations/kc/kc_MT.jsonl"]
+main_args = [
+    "",
+    "../../TranslationToolEvaluation/data/processed/kc",
+    "../machine_translations/kc/kc_GoogleTranslate_MT.jsonl"
+]
 # main_args = sys.argv
 """Add check to ensure the second argument is a .jsonl so that the extension gets correctly stripped off for the LOGS.txt file"""
 
@@ -74,11 +78,11 @@ for filename in os.listdir(main_args[1]):
 
 start_time = time.time()
 output = open(main_args[2],'w',encoding="utf-8")
-logs = open(main_args[2][0:-6] +"_LOGS.txt", 'w',encoding='utf-8')
+# logs = open(main_args[2][0:-6] +"_LOGS.txt", 'w',encoding='utf-8')
 for i,d in enumerate(data):
     print(f"processing: {d["id"]}")
     source_text = d["source"]["eng"]
-    line = {"id": d["id"], "scenario": d["scenario"], "english_source_text": source_text }
+    line = {"id": d["id"], "scenario": d["scenario"], "english_source_text": source_text, "technology": "Google Translate" }
     
     for key in d["translations"].keys():
         if key == "en":
@@ -95,14 +99,14 @@ for i,d in enumerate(data):
         machine_translation = translate_with_backoff(source_text, target_language_code = iso) #translate_text(source_text,target_language_code=key).translated_text
         
         line[key+"_MT"] = machine_translation
-        logs.write(f"{d["id"]} translated into: {key}\n")
+        # logs.write(f"{d["id"]} translated into: {key}\n")
         # line[key +"_MT_bleu"] = bleu(MT_sent=machine_translation, human_reference= human_translation)["bleu"]
         # line[key+"_MT_chrf"] = chrf(MT_sent=machine_translation, human_reference= human_translation)["chrf"]
         # line[key+"_MT_chrf++"] = chrf(MT_sent=machine_translation, human_reference= human_translation)["chrf++"]
 
-    logs.write(f"----- {d["id"]} Elapsed Time: {time.time() - start_time} -----\n")
+    # logs.write(f"----- {d["id"]} Elapsed Time: {time.time() - start_time} -----\n")
     output.write(json.dumps(line, ensure_ascii=False) + "\n")
 
-logs.write(f"Total Elapsed Time: {time.time() - start_time}")
-logs.close()
+# logs.write(f"Total Elapsed Time: {time.time() - start_time}")
+# logs.close()
 output.close()

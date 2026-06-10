@@ -1,14 +1,13 @@
 import os,re,sys,json
 from eval_fns import *
 
-
 # main_args = sys.argv # 1st arg is gold data path, 2nd is corresponding MT file path, 3rd is name of output file
-main_args = [
-    "",
-    "../../TranslationToolEvaluation/data/processed/kc",
-    "../machine_translations/kc/kc_GoogleTranslate_MT.jsonl",
-    "../machine_translations/kc/evals/kc_GoogleTranslate_MT_evals.jsonl"
-]
+# main_args = [
+#     "",
+#     "../../TranslationToolEvaluation/data/processed/kc",
+#     "../machine_translations/kc/kc_GoogleTranslate_MT.jsonl",
+#     "../machine_translations/kc/kc_GoogleTranslate_MT_metrics/kc_GoogleTranslate_MT_bleu_chrf.jsonl"
+# ]
 
 # Step 1: load the gold data into a hashable form
 gold = {}
@@ -48,6 +47,7 @@ with open(main_args[2], 'r') as file:
             d = {} # dictionary to write to
             d["id"] = curr["id"]
             d["scenario"] = curr["scenario"]
+            d["technology"] = "Google Translate"
             d["source_language"] = "en"
             d["target_language"] = iso
 
