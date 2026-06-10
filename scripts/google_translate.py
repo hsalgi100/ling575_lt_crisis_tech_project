@@ -1,7 +1,6 @@
 import time
 import sys, os, json
 from google.cloud import translate # translate_v2 as translate
-from eval_fns import *
 
 # Retrieve Service Account Credentials to call the API
 service_account_credentials_path = "/Users/anantha/.apikeys/wea-translation-497802-3e63f30e8ae5.json"
