@@ -18,37 +18,29 @@ source("RESOURCES/LOAD_ALL_RESOURCES.R")
 # STEP 1: load all the metrics into a mega df
 # evals <- generate_evals_df(MT_EVAL_PATH) # helper function
 
-# STEP 2: Generate descriptive statistics
+
+# STEP 2: Generate descriptive statistics graphs
 langs <- unique(evals$target_language)
 technologies <- unique(evals$technology)
 metrics <- unique(evals$metric)
 
 
 for(metric in metrics){
-  
-  
-}
-
-for(tech in technologies){
-  for(lang in langs){
-    result <- capture.output(
-      evals %>% 
-        filter(target_language == lang, technology == tech) %>% 
-        select(c(metric,score)) %>% 
-        pivot_wider(names_from = metric, values_from = score) %>% 
-        stat.desc()
-    )
-    
-    if(!dir.exists(str_c("../Statistics/",tech))){
-      # print("YOYOYOYOYOOYOY")
-      dir.create(str_c("../Statistics/",tech,"/"),showWarnings = F)
-    }
-    
-    write(
-      c(str_c("# ",tech," Performance: English into ", lang),
-        result),
-      file = str_c("../Statistics/",tech,"/",tech," - [en] into [",lang,"].md")
-    )
-    
-  }
+ plot <- evals %>% 
+   filter(metric == metric) %>% 
+   mutate(score = case_when(
+     technology == "Gemma4" ~ score / 100,
+     technology == "Qwen35" ~ score / 100,
+     TRUE ~ score
+   )) %>% 
+   group_by(technology,target_language,metric) %>% 
+   summarize(score = mean(score)) %>% 
+    ggplot(mapping = aes(x = target_language, y = score,fill = technology)) +
+      geom_col(position = "dodge") +
+      labs(title = str_c(metric," Scores")) +
+      xlab("Target Language") +
+      ylab("")
+ 
+ ggsave(str_c("../Graphs/Bar Plots/", metric," bar plot.png"), plot,create.dir = TRUE)
+ 
 }
