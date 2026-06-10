@@ -227,7 +227,6 @@ def main():
         })
 
     # Headline = macro-average across languages (each language weighted equally),
-    # the standard way to summarize a multilingual benchmark.
     def macro(metric_key, model_key):
         vals = [bl[model_key][metric_key] for bl in by_language]
         return sum(vals) / len(vals) if vals else None
