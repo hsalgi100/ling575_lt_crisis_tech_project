@@ -25,22 +25,24 @@ technologies <- unique(evals$technology)
 metrics <- unique(evals$metric)
 
 
-for(metric in metrics){
- plot <- evals %>% 
-   filter(metric == metric) %>% 
-   mutate(score = case_when(
-     technology == "Gemma4" ~ score / 100,
-     technology == "Qwen35" ~ score / 100,
-     TRUE ~ score
-   )) %>% 
-   group_by(technology,target_language,metric) %>% 
-   summarize(score = mean(score)) %>% 
-    ggplot(mapping = aes(x = target_language, y = score,fill = technology)) +
-      geom_col(position = "dodge") +
-      labs(title = str_c(metric," Scores")) +
-      xlab("Target Language") +
-      ylab("")
+for(m in metrics){
+  print(m)
+  
+  plot <- evals %>% 
+    filter(metric == m) %>% 
+    mutate(score = case_when(
+      technology == "Gemma4" ~ score / 100,
+      technology == "Qwen35" ~ score / 100,
+      TRUE ~ score
+    )) %>% 
+    group_by(technology,target_language,metric) %>% 
+    summarize(score = mean(score)) %>% 
+      ggplot(mapping = aes(x = target_language, y = score,fill = technology)) +
+        geom_col(position = "dodge") +
+        labs(title = str_c(m," Scores")) +
+        xlab("Target Language") +
+        ylab("")
  
- ggsave(str_c("../Graphs/Bar Plots/", metric," bar plot.png"), plot,create.dir = TRUE)
+ ggsave(str_c("../Graphs/Bar Plots/", m," bar plot.png"), plot,create.dir = TRUE)
  
 }
