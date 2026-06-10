@@ -6,6 +6,7 @@ AI benchmarking for Alerts Dataset
 
 # Run this setup for llama-cpp and huggingface
 ```CMAKE_ARGS="-DGGML_METAL=on" pip install llama-cpp-python --upgrade --force-reinstall --no-cache-dir```
+
 ```pip install huggingface_hub```
 
 - The "-DGGML_METAL=on" is a mac setting
@@ -16,19 +17,33 @@ AI benchmarking for Alerts Dataset
 
 # Download Qwen3.5_9B
 ```hf auth login  (only if you aren't already logged in)```
+
 ```hf download bartowski/Qwen_Qwen3.5-9B-GGUF --include "*Q4_K_M*" --local-dir ./models```
 
 # Download Gemma4_4B
 ```hf auth login```
+
 ```hf download bartowski/google_gemma-4-E4B-it-GGUF --include "*Q4_K_M*" --local-dir ./models```
 
 # COMET Eval for Open Sourced Models
 ``` pip install llama-cpp-python unbabel-comet```
+
 Run the following bash script:
+
 ```bash open_source_comet_evaluation.sh```
+
 - In the bash script, the /models directory is inside of the /scripts directory because that is how we have it locally, however you will need to change the filepath in the script to point to where the models folder is if you try to run this yourself
 
 # SacreBLEU Eval for Open Sourced Models
 ```pip install sacrebleu sentencepiece```
+
 ```bash open_source_scare_bleu_evaluation.sh```
+
 On first use it downloads a ~5 MB SPM model from dl.fbaipublicfiles.com (cached in ~/.sacrebleu afterward), so the first run needs internet.
+
+# For reformatting Gemma and Qwen results for the R scripts:
+```bash format_bleu.sh```
+
+```bash format_comet.sh```
+
+As a note, the comet and bleu results from the open sourced models were designed to show the average results of each language.
