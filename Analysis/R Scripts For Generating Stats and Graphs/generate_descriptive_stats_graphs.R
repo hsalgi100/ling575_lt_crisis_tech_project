@@ -6,8 +6,8 @@
 MT_EVAL_PATH = "../../machine_translations/kc"
 
 # Script Description: 
-# This file obtains descriptive statistics for the machine translations.
-# Set the working directory to "./Analysis an Visuals" and run this script
+# This file creates graphs for descriptive statistics for the machine translations.
+# Set the working directory to "./Analysis/R Scripts For Generating Stats and Graphs" and run this script
 #####################################################################################################################
 #####################################################################################################################
 #####################################################################################################################
@@ -16,12 +16,11 @@ MT_EVAL_PATH = "../../machine_translations/kc"
 source("RESOURCES/LOAD_ALL_RESOURCES.R")
 
 # STEP 1: load all the metrics into a mega df
-evals <- generate_evals_df(MT_EVAL_PATH) # helper function
+# evals <- generate_evals_df(MT_EVAL_PATH) # helper function
 
 # STEP 2: Generate descriptive statistics
 langs <- unique(evals$target_language)
 technologies <- unique(evals$technology)
-metrics <- unique(evals$metric)
 
 for(tech in technologies){
   for(lang in langs){
@@ -40,27 +39,9 @@ for(tech in technologies){
     
     write(
       c(str_c("# ",tech," Performance: English into ", lang),
-      result),
+        result),
       file = str_c("../Statistics/",tech,"/",tech," - [en] into [",lang,"].md")
     )
+    
   }
 }
-
-
-# Metric by Language CSVs
-evals %>% 
-  filter(metric == metric) %>% 
-  group_by(metric,target_language) %>% 
-  summarize("score" = mean(score)) %>% 
-  write.csv(file=str_c("metrics_by_language.csv"),row.names = F)
-
-
-# Metric by Technology CSVs
-evals %>% 
-  filter(metric == metric) %>% 
-  group_by(metric,technology) %>% 
-  summarize("score" = mean(score)) %>% 
-  write.csv(file=str_c("metrics_by_technology.csv"),row.names = F)
-
-
-

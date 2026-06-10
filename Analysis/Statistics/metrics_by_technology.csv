@@ -1,0 +1,4 @@
+"metric","technology","score"
+"bleu","Google Translate",0.441270989389267
+"chrf","Google Translate",49.6633772897421
+"chrf..","Google Translate",46.1489068758196
