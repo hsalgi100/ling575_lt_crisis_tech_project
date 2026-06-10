@@ -21,6 +21,13 @@ source("RESOURCES/LOAD_ALL_RESOURCES.R")
 # STEP 2: Generate descriptive statistics
 langs <- unique(evals$target_language)
 technologies <- unique(evals$technology)
+metrics <- unique(evals$metric)
+
+
+for(metric in metrics){
+  
+  
+}
 
 for(tech in technologies){
   for(lang in langs){
