@@ -3,7 +3,7 @@
 Translation + Evaluation: Gemma4 4B vs Qwen3.5 9B — scored with COMET
 
 WHAT THIS DOES
-  For every record in the input JSONL(s) it:
+  For every record in the input JSONL(s):
     1. Pulls out the English source (source.eng).
     2. Translates that English into EVERY language in the LANG_NAMES table
        below (all codes except "en") — with both Gemma and Qwen.
@@ -18,7 +18,7 @@ WHAT THIS DOES
   and appear under "translations", but they cannot be COMET-scored (COMET is
   reference-based), so they are omitted from that record's "evaluation".
 
-SETUP (run once, in whichever venv you prefer):
+SETUP (run once):
   pip install llama-cpp-python unbabel-comet
 
 JSONL format expected (one object per line):
@@ -29,24 +29,7 @@ JSONL format expected (one object per line):
     "translations": {"am": "...gold...", "ko": "...gold...", ...}   # optional
   }
 
-MEMORY NOTE (16 GB Mac):
-  Gemma, Qwen, and COMET are NEVER held in memory at the same time. The run is
-  split into three phases — translate-all-with-Gemma, translate-all-with-Qwen,
-  score-everything-with-COMET — and each model is freed before the next loads.
-  This avoids the `llama_decode returned -3` backend OOM on unified memory.
-
-CHECKPOINTING / RESUME:
-  Each completed record is appended (flushed + fsync'd) to a per-phase JSONL
-  checkpoint as soon as it finishes, so a crash mid-phase only loses the single
-  in-flight record. Re-running the script picks up where it left off:
-    - records already in a phase's checkpoint are skipped
-    - if every record in a phase is already done, that model is not even loaded
-    - COMET scores are checkpointed per (record, language) pair, per model
-  A checkpoint entry is only reused if the source text still hashes the same, so
-  editing the input invalidates just the changed records. Checkpoints live next
-  to the output file (<output>.gemma.partial.jsonl, etc.) and are deleted on a
-  clean finish. Flags: --fresh wipes checkpoints before starting;
-  --keep-checkpoints leaves them in place after a successful run.
+MEMORY --> 16 GB Mac:
 """
 
 import os
@@ -60,24 +43,16 @@ from collections import defaultdict
 from pathlib import Path
 from llama_cpp import Llama
 
-# ── Default paths ─────────────────────────────────────────────────────────────
-
 DEFAULT_GEMMA_PATH = "scripts/models/google_gemma-4-E4B-it-Q4_K_M.gguf"
 DEFAULT_QWEN_PATH  = "scripts/models/Qwen_qwen3.5-9B-Q4_K_M.gguf"
 DEFAULT_DATA_DIR   = "/data/kc"
 DEFAULT_OUTPUT     = "translation_results.json"
 
-# ── Inference config ──────────────────────────────────────────────────────────
+# Inference config
 
-N_GPU_LAYERS   = -1     # all layers on GPU. If you STILL hit -3, try e.g. 20 to
-                        # spill some layers to CPU at the cost of speed.
-N_CTX          = 1024   # prompts + MAX_NEW_TOKENS fit comfortably; smaller ctx
-                        # means a smaller KV cache, which matters on 16 GB.
+N_GPU_LAYERS   = -1     
+N_CTX          = 1024   
 MAX_NEW_TOKENS = 256
-
-# ── Language code → full name mapping ────────────────────────────────────────
-# This table IS the set of target languages. The script translates the English
-# source into every code below except "en". Extend freely.
 
 LANG_NAMES = {
     "am": "Amharic",
@@ -103,17 +78,11 @@ LANG_NAMES = {
 TARGET_LANGS = [code for code in LANG_NAMES if code != "en"]
 
 def lang_name(code: str) -> str:
-    """Return a full language name for a BCP-47 code, falling back to the code itself."""
     return LANG_NAMES.get(code, code)
 
-# ── COMET model ───────────────────────────────────────────────────────────────
 
 COMET_MODEL = "Unbabel/wmt22-comet-da"
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Prompt builders
-# ─────────────────────────────────────────────────────────────────────────────
 
 def system_prompt(target_lang_code: str) -> str:
     name = lang_name(target_lang_code)
@@ -159,10 +128,7 @@ def qwen_prompt(source_text: str, target_lang_code: str) -> str:
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Model loading / unloading
-# ─────────────────────────────────────────────────────────────────────────────
-
 def load_llm(model_path: str, label: str) -> Llama:
     print(f"Loading {label}: {os.path.basename(model_path)} ...")
     llm = Llama(model_path=model_path, n_gpu_layers=N_GPU_LAYERS, n_ctx=N_CTX, verbose=False)
@@ -172,7 +138,7 @@ def load_llm(model_path: str, label: str) -> Llama:
 def free_llm(llm, label: str = "") -> None:
     """Release a llama.cpp model and force its native buffers to be freed."""
     try:
-        llm.close()          # frees the underlying llama_context/model (recent llama-cpp-python)
+        llm.close()          # frees the underlying llama_context/model
     except AttributeError:
         pass
     del llm
@@ -181,10 +147,7 @@ def free_llm(llm, label: str = "") -> None:
         print(f"  {label} freed\n")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Translation
-# ─────────────────────────────────────────────────────────────────────────────
-
 def translate_gemma(llm: Llama, text: str, lang: str) -> str:
     out = llm(
         gemma_prompt(text, lang),
@@ -210,10 +173,7 @@ def translate_qwen(llm: Llama, text: str, lang: str) -> str:
     return raw.strip()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # COMET
-# ─────────────────────────────────────────────────────────────────────────────
-
 def load_comet():
     from comet import download_model, load_from_checkpoint
     print(f"Loading COMET ({COMET_MODEL}) ...")
@@ -227,14 +187,10 @@ def comet_score(comet_model, sources, hypotheses, references):
     return out.scores, out.system_score
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Data loading
-# ─────────────────────────────────────────────────────────────────────────────
-
 def load_jsonl(path: str):
     """
-    Returns a list of record dicts:
-      {"id": ..., "scenario": ..., "source_eng": "...", "gold": {lang: ref, ...}}
+    Returns a list of record dicts
 
     Every record with a usable English source is kept (regardless of whether it
     has any gold translations), because we translate into the full table either
@@ -261,11 +217,9 @@ def load_jsonl(path: str):
     return records
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Checkpointing / resume
-# ─────────────────────────────────────────────────────────────────────────────
-# Stable keys so checkpoints survive across runs regardless of record order.
 
+# Checkpointing / resume
+# Stable keys so checkpoints survive across runs regardless of record order.
 def rec_key(rec) -> str:
     """A stable identifier for a record: file + id."""
     return f"{rec['file']}::{rec.get('id')}"
@@ -280,18 +234,13 @@ def src_hash(text: str) -> str:
 
 
 def _append_jsonl(fh, obj) -> None:
-    """Append one JSON line and force it to disk (durable against a crash)."""
+    """Append one JSON line and force it to disk"""
     fh.write(json.dumps(obj, ensure_ascii=False) + "\n")
     fh.flush()
     os.fsync(fh.fileno())
 
 
 def load_translation_ckpt(path: str) -> dict:
-    """
-    Read a translation checkpoint into {rec_key: {"src_hash": ..., "tx": {lang: hyp}}}.
-    Tolerant of a torn final line (a crash mid-write leaves a partial JSON line,
-    which we simply skip).
-    """
     done = {}
     if not os.path.exists(path):
         return done
@@ -379,10 +328,8 @@ def load_score_ckpt(path: str):
     return sg, sq
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Output assembly + (atomic) write
-# ─────────────────────────────────────────────────────────────────────────────
 
+# Output assembly + (atomic) write
 def write_results(path, records, gemma_tx, qwen_tx, score_g, score_q, sys_g, sys_q):
     """
     Assemble the full output JSON from whatever is available so far and write it
@@ -474,10 +421,7 @@ def write_results(path, records, gemma_tx, qwen_tx, score_g, score_q, sys_g, sys
     return output
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Main
-# ─────────────────────────────────────────────────────────────────────────────
-
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--gemma",  default=DEFAULT_GEMMA_PATH)
@@ -510,9 +454,7 @@ def main():
     print(f"\nFound {len(jsonl_files)} JSONL file(s)")
     print(f"Translating into {len(TARGET_LANGS)} languages: {', '.join(TARGET_LANGS)}\n")
 
-    # ── Phase 0: read every file once, flatten into one record list ──────────
-    # records are tiny (text), so holding them all is cheap and lets us load
-    # each heavyweight model exactly once.
+    # Phase 0: read every file once, flatten into one record list
     records = []   # each: dict with id/scenario/source_eng/gold/file
     for fpath in jsonl_files:
         fname = Path(fpath).stem
@@ -553,17 +495,17 @@ def main():
         if removed:
             print(f"  --fresh: removed {len(removed)} existing checkpoint file(s)\n")
 
-    # ── Phase 1: Gemma translates everything (resumable), then is freed ──────
+    # Phase 1: Gemma translates everything (resumable), then is freed
     gemma_tx = run_translation_phase(args.gemma, "Gemma4 4B", translate_gemma, records, gemma_ckpt)
     write_results(args.output, records, gemma_tx, [], {}, {}, None, None)
     print(f"  Results JSON updated after Gemma phase -> {args.output}\n")
 
-    # ── Phase 2: Qwen translates everything (resumable), then is freed ───────
+    # Phase 2: Qwen translates everything (resumable), then is freed
     qwen_tx = run_translation_phase(args.qwen, "Qwen3.5 9B", translate_qwen, records, qwen_ckpt)
     write_results(args.output, records, gemma_tx, qwen_tx, {}, {}, None, None)
     print(f"  Results JSON updated after Qwen phase -> {args.output}\n")
 
-    # ── Phase 3: build scorable triples, then COMET-score them (resumable) ───
+    # Phase 3: build scorable triples, then COMET-score them
     # We can only score (record, lang) pairs where a gold reference exists AND
     # the language is one we translated into.
     triples = []   # (pair_key, src, ref, mt_gemma, mt_qwen)
@@ -620,12 +562,12 @@ def main():
         print("No gold translations found for any target language — "
               "translations will be produced but not scored.\n")
 
-    # ── Final write (now with COMET scores) ──────────────────────────────────
+    # Final write (now with COMET scores)
     output = write_results(args.output, records, gemma_tx, qwen_tx,
                            score_g, score_q, sys_g, sys_q)
     by_language = output["by_language"]
 
-    # ── Console report ───────────────────────────────────────────────────────
+    # Console report
     if by_language:
         print("\n" + "=" * 70)
         print("BY LANGUAGE (scored pairs only)")
@@ -648,7 +590,7 @@ def main():
 
     print(f"\n  Saved: {args.output}")
 
-    # ── Clean up checkpoints on a successful finish ──────────────────────────
+    # Clean up checkpoints on a successful finish
     if args.keep_checkpoints:
         print("  --keep-checkpoints: leaving checkpoint files in place")
     else:
