@@ -23,6 +23,7 @@ AI benchmarking for Alerts Dataset
 ```hf download bartowski/google_gemma-4-E4B-it-GGUF --include "*Q4_K_M*" --local-dir ./models```
 
 # COMET Eval for Open Sourced Models
+``` pip install llama-cpp-python unbabel-comet```
 Run the following bash script:
 ```bash open_source_comet_evaluation.sh```
 - In the bash script, the /models directory is inside of the /scripts directory because that is how we have it locally, however you will need to change the filepath in the script to point to where the models folder is if you try to run this yourself
