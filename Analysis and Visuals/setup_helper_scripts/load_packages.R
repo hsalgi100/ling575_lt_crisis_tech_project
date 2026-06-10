@@ -1,5 +1,0 @@
-library(tidyr)
-library(dplyr)
-library(ggplot2)
-library(jsonlite)
-library(pastecs)
