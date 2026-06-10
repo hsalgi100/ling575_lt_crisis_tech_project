@@ -33,6 +33,7 @@ for(lang in langs){
 print(lang_lookup)
 
 
+# Descriptive Statistics
 for(tech in technologies){
   # print(tech)
   for(lang in langs){
@@ -68,14 +69,30 @@ for(tech in technologies){
 evals %>% 
   group_by(target_language,metric) %>% 
   summarize("score" = mean(score)) %>% 
-  write.csv(file=str_c("metrics_by_language.csv"),row.names = F)
+  write.csv(file=str_c("../Statistics/metrics_by_language.csv"),row.names = F)
 
 
 # Metric by Technology CSVs
 evals %>% 
   group_by(technology,metric) %>% 
   summarize("score" = mean(score)) %>% 
-  write.csv(file=str_c("metrics_by_technology.csv"),row.names = F)
+  write.csv(file=str_c("../Statistics/metrics_by_technology.csv"),row.names = F)
+
+
+
+# Normalized Overall Metric (NOM) Scores
+evals %>% mutate(score = case_when(
+  metric == "chrf" ~ score / 100,
+  metric == "chrf.." ~ score / 100,
+  TRUE ~ score
+)) %>% group_by(technology,target_language) %>% 
+  summarize(normalized_overall_metric_score = mean(score)) %>%
+  pivot_wider(names_from = technology,values_from = normalized_overall_metric_score) %>%
+  write.csv(file = str_c("../Statistics/Normalized-Overall-Metric Scores.csv"),row.names = F)
+
+
+
+
 
 
 

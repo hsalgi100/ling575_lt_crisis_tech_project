@@ -46,3 +46,22 @@ for(m in metrics){
  ggsave(str_c("../Graphs/Bar Plots/", m," bar plot.png"), plot,create.dir = TRUE)
  
 }
+
+
+# Normalized Overall Metric(NOM) Scores
+NOM_plot <- evals %>% 
+  mutate(score = case_when(
+    metric == "chrf" ~ score / 100,
+    metric == "chrf.." ~ score / 100,
+    TRUE ~ score
+  )) %>% 
+  group_by(technology,target_language) %>% 
+  summarize(normalized_overall_metric_score = mean(score)) %>%
+    ggplot(mapping = aes(x = target_language, y = normalized_overall_metric_score,fill = technology)) +
+      geom_col(position = "dodge") +
+      labs(title = str_c("Normalized Overall Metric (NOM) Scores")) +
+      xlab("Target Language") +
+      ylab("")
+
+ggsave(str_c("../Graphs/Normalized Overall Metric (NOM) bar plot.png"),NOM_plot,create.dir = T)
+
