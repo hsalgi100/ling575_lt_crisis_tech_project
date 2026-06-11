@@ -1,41 +1,21 @@
 import evaluate
+from comet import download_model, load_from_checkpoint
+
 #from nltk.translate.bleu_score import sentence_bleu
 #from nltk.translate.chrf_score import sentence_chrf
 
 # Things to load beforehand:
 _chrf = evaluate.load("chrf")
 _bleu = evaluate.load("bleu")
-_comet = evaluate.load("comet")
+_sacrebleu = evaluate.load("sacrebleu")
+_comet_model = download_model("Unbabel/wmt22-comet-da")
+_comet = load_from_checkpoint(_comet_model)
+# _meteor = evaluate.load("meteor")
 
-# def nltk_bleu(MT_sent:str, human_reference:str):
-#     """Computes the NLTK bleu score for BLEU-2, BLEU-3, and BLEU-4
-
-#     Args:
-#         - MT_sent: the machine translated sentence
-#         - human_reference: the gold reference / human translation
-    
-#     Returns:
-#     A dictionary with BLEU-2, BLEU-3, and BLEU-4 score
-#     """
-
-#     hypo = MT_sent.split(" ")
-#     ref = human_reference.split(" ")
-
-#     b2, b3, b4 = sentence_bleu(
-#     [ref],
-#     hypo,
-#     weights=[
-#         (1/2,1/2),
-#         (1/3,1/3,1/3),
-#         (1/4,1/4,1/4,1/4)
-#         ]
-#     )
-
-#     return {
-#         "bleu2": b2, 
-#         "bleu3": b3,
-#         "bleu4": b4
-#     }
+# from torch.utils.data import DataLoader
+# import torch.multiprocessing as mp
+# # You may need to apply this globally at the top of your file or inside main
+# mp.set_start_method('spawn', force=True) 
 
 def bleu(MT_sent:str, human_reference:str):
     """Computes the bleu score for BLEU-1, BLEU-2, BLEU-3, and BLEU-4
@@ -90,6 +70,26 @@ def chrf(MT_sent:str, human_reference:str):
         "chrf++": chrfplusplus_scores["score"]
     }
 
+def sacrebleu(MT_sent:str, human_reference:str):
+    """Computes sacrebleu
+    
+    Args:
+        - MT_sent: the machine translated sentence
+        - human_reference: the gold reference / human translation
+    
+    Returns:
+    A dictionary with sacrebleu scores
+    """
+    sb_scores = _sacrebleu.compute(
+        predictions=[MT_sent],
+        references=[human_reference]
+    )
+
+    return {
+        "sacrebleu": sb_scores["score"] / 100
+    }
+
+# _comet = evaluate.load("comet")
 def comet(MT_sent:str, human_reference:str, source_sentence:str):
     """Computes Comet for a triple of sentences.
     
@@ -101,9 +101,25 @@ def comet(MT_sent:str, human_reference:str, source_sentence:str):
     Returns:
     A dictionary with COMET scores
     """
+    # HuggingFace Way of doing it that wasn't working
+    # comet_score = _comet.compute(
+    #     predictions = [MT_sent],
+    #     references = [human_reference],
+    #     sources = [source_sentence],
+    #     gpus = None
+    # )
 
-    comet_score = _comet.compute(
-        predictions = [MT_sent],
-        reference = [human_reference],
-        sources = [source_sentence]
-    )
+    # Direct way by loading the model
+    data = [
+        {
+            "src": source_sentence,
+            "mt": MT_sent,
+            "ref": human_reference
+        }
+    ]
+
+    comet_score = _comet.predict(data, batch_size=1)
+
+    return {
+        "comet":comet_score.scores[0]
+    }

@@ -1,7 +1,7 @@
 import os,re,sys,json
 from eval_fns import *
 
-# main_args = sys.argv # 1st arg is gold data path, 2nd is corresponding MT file path, 3rd is name of output file
+main_args = sys.argv # 1st arg is gold data path, 2nd is corresponding MT file path, 3rd is name of output file
 # main_args = [
 #     "",
 #     "../../TranslationToolEvaluation/data/processed/kc",
@@ -34,8 +34,9 @@ with open(main_args[2], 'r') as file:
         curr = json.loads(line) # current machine translation jsonl
         # print(curr.keys())
         MT_iso_codes = [re.search("(.+)_MT",s).group(1) for s in curr.keys() if "_MT" in s]
-        print(MT_iso_codes)
-        print(f"processing {curr["id"]}: {i+1} / {482}")
+        # MT_iso_codes = [iso for iso in curr["translations"].keys()]
+        # print(MT_iso_codes)
+        print(f"\n\n\nprocessing {curr['id']}")
 
         # iterate over languages
         for i,iso in enumerate(MT_iso_codes):
@@ -43,6 +44,7 @@ with open(main_args[2], 'r') as file:
             source_text = gold[curr["id"]]["en"] # source is English
             human_translation = gold[curr["id"]][iso] # gold translation
             machine_translation = curr[iso+"_MT"] # machine translation
+            # machine_translation = curr["translations"][iso] # machine translation
 
             d = {} # dictionary to write to
             d["id"] = curr["id"]
@@ -52,9 +54,11 @@ with open(main_args[2], 'r') as file:
             d["target_language"] = iso
 
             # Metrics to evaluate
-            d["bleu"] = bleu(machine_translation, human_translation)["bleu"]
-            d["chrf"] = chrf(machine_translation, human_translation)["chrf"]
-            d["chrf++"] = chrf(machine_translation, human_translation)["chrf++"]
+            # d["bleu"] = bleu(machine_translation, human_translation)["bleu"]
+            # d["chrf"] = chrf(machine_translation, human_translation)["chrf"]
+            # d["chrf++"] = chrf(machine_translation, human_translation)["chrf++"]
+            d["comet"] = comet(machine_translation,human_translation,source_text)["comet"]
+            d["sacrebleu"] = sacrebleu(machine_translation,human_translation)["sacrebleu"]
             
             output.write(json.dumps(d,ensure_ascii=False) + "\n")
 

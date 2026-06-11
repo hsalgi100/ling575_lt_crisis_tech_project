@@ -63,5 +63,5 @@ NOM_plot <- evals %>%
       xlab("Target Language") +
       ylab("")
 
-ggsave(str_c("../Graphs/Normalized Overall Metric (NOM) bar plot.png"),NOM_plot,create.dir = T)
+ggsave(str_c("../Graphs/Bar Plots/Normalized Overall Metric (NOM) bar plot.png"),NOM_plot,create.dir = T)
 
