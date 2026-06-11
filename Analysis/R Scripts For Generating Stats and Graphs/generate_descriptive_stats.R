@@ -16,7 +16,7 @@ MT_EVAL_PATH = "../../machine_translations/kc"
 source("RESOURCES/LOAD_ALL_RESOURCES.R")
 
 # STEP 1: load all the metrics into a mega df
-# evals <- generate_evals_df(MT_EVAL_PATH) # helper function
+evals <- generate_evals_df(MT_EVAL_PATH) # helper function
 
 # STEP 2: Generate descriptive statistics
 langs <- unique(evals$target_language)

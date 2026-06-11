@@ -6,6 +6,8 @@
 "Google Translate","bleu",0.441270989389267
 "Google Translate","chrf",49.6633772897421
 "Google Translate","chrf..",46.1489068758196
+"Google Translate","comet",0.884398300105777
+"Google Translate","sacrebleu",0.163641737596125
 "Qwen35","bleu",0.173508327784408
 "Qwen35","chrf",41.0684204944366
 "Qwen35","chrf..",37.7002538448155

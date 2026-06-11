@@ -11,13 +11,13 @@ library(stringr)
 generate_evals_df <- function(MT_EVAL_PATH){
   evals <- data.frame(matrix(ncol = 7,nrow = 0))
   
-  progress_bar = 1
   for(dirname in list.dirs(MT_EVAL_PATH)){
     if(dirname == MT_EVAL_PATH){ next }
     
     for(filename in list.files(dirname)){
       file_content <- readLines(str_c(dirname,"/",filename))
       
+      progress_bar <- 1
       for(line in file_content){
         print(str_c(filename," - Line #: ",progress_bar))
         JSONL_as_df <- data.frame(fromJSON(line))
